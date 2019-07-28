@@ -6,14 +6,14 @@
     canvas.height = 400;
     document.body.appendChild(canvas);
 
-    var blocksX = 4;
-    var blocksY = 6;
+    var blocksX = 40;
+    var blocksY = 60;
     var blockWidth = canvas.width/blocksX;          // matrix square width
     var blockHeight = canvas.height/blocksY;        // matrix square height
     // var blocksCount = blocksX * blocksY;
     var blockMatrix = [];
     var mergedMatrix = [];
-    var mergeLimit = 4;
+    var mergeLimit = 6;
     
     // create initial matrix
     for (let i = 0; i < blocksY; i++) {
@@ -35,24 +35,18 @@
         ctx.fillRect(b.x, b.y, b.w, b.h);
     }
     
-    // mergeBlocks(blockMatrix[0], blockMatrix[1]);
-    // mergeBlocks(blockMatrix[2], blockMatrix[1]);
-    // mergeBlocks(blockMatrix[5], blockMatrix[1]);
-
-    // mergeBlocks(blockMatrix[8], blockMatrix[9]);
-    // mergeBlocks(blockMatrix[10], blockMatrix[9]);
-
+    // merge blocks randomly
     for (let i = 0; i < blocksY; i++) {
         for (let j = 0; j < blocksX; j++) {
-            // var index = i*blocksY + j;
-            // if(i > 0)
-            //     mergeBlocks(blockMatrix[index-blocksX], blockMatrix[index]);
-            // if(j < blocksX-1)
-            //     mergeBlocks(blockMatrix[index+1], blockMatrix[index]);
-            // if(i < blocksY-1)
-            //     mergeBlocks(blockMatrix[index+blocksX], blockMatrix[index]);
-            // if(j > 0)
-            //     mergeBlocks(blockMatrix[index-1], blockMatrix[index]);
+            var index = i*blocksX + j;
+            if(i > 0)
+                mergeBlocks(blockMatrix[index], blockMatrix[index-blocksX]);
+            if(j < blocksX-1)
+                mergeBlocks(blockMatrix[index], blockMatrix[index+1]);
+            if(i < blocksY-1)
+                mergeBlocks(blockMatrix[index], blockMatrix[index+blocksX]);
+            if(j > 0)
+                mergeBlocks(blockMatrix[index], blockMatrix[index-1]);
         }
     }
 
@@ -62,12 +56,12 @@
     console.log(mergedMatrix);
 
     for (let i = 0; i < mergedMatrix.length; i++) {
+        ctx.fillStyle = getRandomColor();
         for (let j = 0; j < mergedMatrix[i].blocks.length; j++) {
             var b = mergedMatrix[i].blocks[j];
-            // ctx.fillStyle = '#000';
-            // ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.fillRect(b.x, b.y, b.w, b.h);
             // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-            ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x+30, b.y+20, b.w, b.h);
+            // ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x+30, b.y+20, b.w, b.h);
         }
     }
 
@@ -82,8 +76,7 @@
         this.w = blockWidth;    //  width
         this.h = blockHeight;   //  height
         this.path;              //  path
-        this.merged = false;    //  times merged
-        this.parent = 0;            //  block's merged parent
+        this.parent;            //  parent merged
     }
 
     function Merged(){
@@ -101,18 +94,24 @@
     }
 
     function mergeBlocks(b1, b2){
-        //  merge b1 to b2, or b2's parent
-        if (adjacent(b1, b2)&&Math.round(Math.random())==1) {
-            if (b2.parent == 0) {
-                var merged = new Merged();
-                merged.blocks.push(b2);
-                merged.blocks.push(b1);
-                b2.parent = merged;
-                b1.parent = merged;
-                mergedMatrix.push(merged);
-            } else {
-                if (b2.parent.blocks.length < mergeLimit) {
-                    b2.parent.blocks.push(b1);
+        //  merge b1 to b2's parent
+        if(!b1.parent){
+            if (adjacent(b1, b2)) {
+                if (!b2.parent) {
+                    console.log(b2);
+                    var m = new Merged();
+                    b2.parent = m;
+                    m.blocks.push(b2);
+                    mergedMatrix.push(b2.parent);
+                    if(Math.round(Math.random())==1){
+                        m.blocks.push(b1);
+                        b1.parent = m;
+                    }
+                } else {
+                    console.log('has parent')
+                    if (b2.parent.blocks.length < mergeLimit) {
+                        b2.parent.blocks.push(b1);
+                    }
                 }
             }
         }
