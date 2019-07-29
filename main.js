@@ -2,18 +2,17 @@
 
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext("2d");
-    canvas.width = 300;
+    canvas.width = 400;
     canvas.height = 400;
     document.body.appendChild(canvas);
 
     var blocksX = 40;
-    var blocksY = 60;
+    var blocksY = 40;
     var blockWidth = canvas.width/blocksX;          // matrix square width
     var blockHeight = canvas.height/blocksY;        // matrix square height
-    // var blocksCount = blocksX * blocksY;
     var blockMatrix = [];
     var mergedMatrix = [];
-    var mergeLimit = 6;
+    var mergeLimit = 4;
     
     // create initial matrix
     for (let i = 0; i < blocksY; i++) {
@@ -29,39 +28,54 @@
     }
     
     //  draw matrix
-    for (let i = 0; i < blockMatrix.length; i++) {
-        var b = blockMatrix[i];
-        ctx.fillStyle = getRandomColor();
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-    }
+    // for (let i = 0; i < blockMatrix.length; i++) {
+    //     var b = blockMatrix[i];
+    //     ctx.fillStyle = getRandomColor();
+    //     ctx.fillRect(b.x, b.y, b.w, b.h);
+    // }
     
     // merge blocks randomly
     for (let i = 0; i < blocksY; i++) {
         for (let j = 0; j < blocksX; j++) {
             var index = i*blocksX + j;
-            if(i > 0)
+            if(i > 0){
+                // console.log('up');
                 mergeBlocks(blockMatrix[index], blockMatrix[index-blocksX]);
-            if(j < blocksX-1)
+            }
+            if(j < blocksX-1){
+                // console.log('right');
                 mergeBlocks(blockMatrix[index], blockMatrix[index+1]);
-            if(i < blocksY-1)
+            }
+            if(i < blocksY-1){
+                // console.log('down');
                 mergeBlocks(blockMatrix[index], blockMatrix[index+blocksX]);
-            if(j > 0)
+            }
+            if(j > 0){
+                // console.log('left');
                 mergeBlocks(blockMatrix[index], blockMatrix[index-1]);
+            }
         }
     }
 
     // var img = new Image();
     // img.src = 'Hippo-Day-2018.jpg';   
     var img = document.getElementById('image');
-    console.log(mergedMatrix);
 
+    // draw merged matrix
     for (let i = 0; i < mergedMatrix.length; i++) {
-        ctx.fillStyle = getRandomColor();
-        for (let j = 0; j < mergedMatrix[i].blocks.length; j++) {
-            var b = mergedMatrix[i].blocks[j];
-            ctx.fillRect(b.x, b.y, b.w, b.h);
-            // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-            // ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x+30, b.y+20, b.w, b.h);
+        // console.log('merged group '+i);
+        if(Math.round(Math.random())==1){
+            ctx.fillStyle = getRandomColor();
+            for (let j = 0; j < mergedMatrix[i].blocks.length; j++) {
+                var b = mergedMatrix[i].blocks[j];
+                ctx.fillRect(b.x, b.y, b.w, b.h);
+            }
+
+        } else {
+            for (let j = 0; j < mergedMatrix[i].blocks.length; j++) {
+                var b = mergedMatrix[i].blocks[j];
+                ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
+            }
         }
     }
 
@@ -80,6 +94,7 @@
     }
 
     function Merged(){
+        this.index;
         this.blocks = [];       //  blocks that made this polygon
         this.path;
     }
@@ -94,40 +109,122 @@
     }
 
     function mergeBlocks(b1, b2){
-        //  merge b1 to b2's parent
-        if(!b1.parent){
-            if (adjacent(b1, b2)) {
-                if (!b2.parent) {
-                    console.log(b2);
-                    var m = new Merged();
-                    b2.parent = m;
-                    m.blocks.push(b2);
-                    mergedMatrix.push(b2.parent);
+        //  merge b2 to b1
+
+        if (adjacent(b1, b2)) {
+            if(!b1.parent){
+                var m = new Merged();
+                b1.parent = m;
+                m.blocks.push(b1);
+                m.index = mergedMatrix.length;
+                mergedMatrix.push(m);
+                if(!b2.parent){
                     if(Math.round(Math.random())==1){
-                        m.blocks.push(b1);
-                        b1.parent = m;
+                        b2.parent = b1.parent;
+                        b1.parent.blocks.push(b2);
                     }
-                } else {
-                    console.log('has parent')
-                    if (b2.parent.blocks.length < mergeLimit) {
-                        b2.parent.blocks.push(b1);
+                }
+            } else {
+                if (b1.parent.blocks.length < mergeLimit) {
+                    if(!b2.parent){
+                        if(Math.round(Math.random())==1){
+                            b2.parent = b1.parent;
+                            b1.parent.blocks.push(b2);
+                        }
                     }
                 }
             }
         }
+        
+        
+        
+        // if (adjacent(b1, b2)) {
+        //     console.log(b1,b2);
+        //     if(!b2.parent){
+        //         if(!b1.parent){
+        //             console.log('b1 orphan');
+        //             var m = new Merged();
+        //             b1.parent = m;
+        //             m.blocks.push(b1);
+        //             m.index = mergedMatrix.length;
+        //             mergedMatrix.push(m);
+        //             if(Math.round(Math.random())==1){
+        //                 console.log('merged');
+        //                 b2.parent = b1.parent;
+        //                 b1.parent.blocks.push(b2);
+        //             }
+        //         }
+        //         else {
+        //             console.log('b1 child of parent');
+        //             if (b1.parent.blocks.length < mergeLimit) {
+        //                 if(Math.round(Math.random())==1){
+        //                     console.log('merged');
+        //                     b2.parent = b1.parent;
+        //                     b1.parent.blocks.push(b2);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
+
+        
+        // console.log(b1,b2);
+        // // console.log(adjacent(b1, b2));
+        // if (adjacent(b1, b2)) {
+        //     // console.log('the two are adjacent');
+        //     if(!b1.parent){
+        //         console.log('b1 orphan');
+        //         if(!b2.parent){
+        //             console.log('b2 orphan');
+        //             var m = new Merged();
+        //             b1.parent = m;
+        //             m.blocks.push(b1);
+        //             m.index = mergedMatrix.length;
+        //             mergedMatrix.push(m);
+        //             if(Math.round(Math.random())==1){
+        //                 b2.parent = b1.parent;
+        //                 b1.parent.blocks.push(b2);
+        //                 console.log('b2 merged to b1');
+        //             }
+        //         }
+        //     } else {
+        //         console.log('b1 child of parent');
+        //         if (b1.parent.blocks.length < mergeLimit) {
+        //             if(!b2.parent){
+        //                 console.log('b2 orphan');
+        //                 if(Math.round(Math.random())==1){
+        //                     b2.parent = b1.parent;
+        //                     b1.parent.blocks.push(b2);
+        //                     console.log('b2 merged to b1');
+        //                 }
+        //             } else {
+        //                 console.log('b2 child of parent');
+        //                 if (b2.parent.blocks.length + b1.parent.blocks.length < mergeLimit*2) {
+        //                     // for (let k = 0; k < b2.parent.blocks.length; k++) {
+        //                     //     b2.parent.blocks[k].parent = b1.parent;
+        //                     //     b1.parent.blocks.push(b2.parent.blocks[k]);
+        //                     // }
+        //                     console.log('b2 merged to b1');                            
+        //                     mergedMatrix.splice(b1.parent.index, 1);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
     
     function adjacent(b1, b2) {
-        var adjacent = false;
+        // var adjacent = false;
+        // if ((b1.row == b2.row)&&(Math.abs(b2.x - b1.x) == b1.w)){
         if ((b1.row == b2.row)&&(b2.x == b1.x + b1.w || b1.x == b2.x + b2.w)){
             //  adjacent horizontally
-            adjacent = true;
+            return true;
         }
         if ((b1.col == b2.col)&&(b2.y == b1.y + b1.h || b1.y == b2.y + b2.h)){
             //  adjacent vertically
-            adjacent = true;
+            return true;
         }
-        return adjacent;        
     }
 
 
