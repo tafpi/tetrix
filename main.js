@@ -2,8 +2,8 @@
 
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext("2d");
-    canvas.width = 400;
-    canvas.height = 400;
+    canvas.width = 538;
+    canvas.height = 539;
     document.body.appendChild(canvas);
 
     var blocksX = 40;
@@ -14,8 +14,8 @@
     var mergedMatrix = [];
     var mergeLimit = 4;
 
-    var durMin = 100;
-    var durMax = 2000;
+    var durMin = 6000;
+    var durMax = 9000;
 
     // create initial matrix
     for (let i = 0; i < blocksY; i++) {
@@ -116,13 +116,22 @@
         if (!start) start = timestamp;
         var progress = timestamp - start;
         // console.log(progress);
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (let i = 0; i < mergedMatrix.length; i++) {
             for (let j = 0; j < mergedMatrix[i].blocks.length; j++) {
                 var b = mergedMatrix[i].blocks[j];
+                // ctx.clearRect(b.x, b.y + b.parent.distance, b.w, b.h);
                 if (progress < b.parent.duration) {
-                    ctx.globalAlpha = b.parent.opacity + 100 / b.parent.duration;
-                    var positionY = b.y + b.parent.distance - b.parent.distance*(1 - progress/durMax);
+                    // ctx.clearRect(b.x, b.y + b.parent.distance, b.w, b.h);
+                    ctx.globalAlpha = b.parent.opacity + progress / b.parent.duration;
+                    // ctx.globalAlpha = 1;
+                    // var positionY = b.y + b.parent.distance - b.parent.distance*(progress/b.parent.duration);
+                    var positionY = b.y;
                     ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x, positionY, b.w, b.h);
+                } else {
+                    // ctx.globalAlpha = 1;
+                    ctx.globalAlpha = b.parent.opacity + progress / b.parent.duration;
+                    ctx.drawImage(img, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
                 }
             }
         }
